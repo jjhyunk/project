@@ -82,7 +82,8 @@ class Login(Resource):
 
         # JWT 토큰 생성
         """token = jwt.encode(
-            {"user_id": existing_user.id, "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
+            {"user_id": existing_user.id,
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
             app.config["SECRET_KEY"],
             algorithm="HS256" test!!
         )"""
@@ -98,7 +99,24 @@ class Login(Resource):
 @api.route("/myStore/<int:userID>")
 class MyStore(Resource):
     def get(self, userID):
-        return {"message": f"MyStore for userID {userID}"}
+
+        user = User.query.filter_by(id=userID).first()
+
+        if not user:
+            return {
+                "status": "fail",
+                "message": f"User with ID {userID} not found.",
+                "data": None,
+            }, 404
+
+        return {
+            "status": "success",
+            "message": f"MyStore for userID {userID}",
+            "data": {
+                "username": user.username,
+                "choiceType": user.choiceType,
+            },
+        }, 200
 
 
 @api.route("/myStore/<int:userID>/select")
