@@ -29,17 +29,6 @@
             }
         },
         "/login": {
-            "get": {
-                "responses": {
-                    "200": {
-                        "description": "Success"
-                    }
-                },
-                "operationId": "get_login",
-                "tags": [
-                    "default"
-                ]
-            },
             "post": {
                 "responses": {
                     "200": {
@@ -47,6 +36,17 @@
                     }
                 },
                 "operationId": "post_login",
+                "tags": [
+                    "default"
+                ]
+            },
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "operationId": "get_login",
                 "tags": [
                     "default"
                 ]
@@ -101,17 +101,6 @@
             }
         },
         "/register": {
-            "get": {
-                "responses": {
-                    "200": {
-                        "description": "Success"
-                    }
-                },
-                "operationId": "get_register",
-                "tags": [
-                    "default"
-                ]
-            },
             "post": {
                 "responses": {
                     "200": {
@@ -119,6 +108,17 @@
                     }
                 },
                 "operationId": "post_register",
+                "tags": [
+                    "default"
+                ]
+            },
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "operationId": "get_register",
                 "tags": [
                     "default"
                 ]
@@ -132,6 +132,27 @@
                     }
                 },
                 "operationId": "post_check",
+                "tags": [
+                    "default"
+                ]
+            }
+        },
+        "/store/{userID}": {
+            "parameters": [
+                {
+                    "name": "userID",
+                    "in": "path",
+                    "required": true,
+                    "type": "integer"
+                }
+            ],
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "operationId": "get_store",
                 "tags": [
                     "default"
                 ]

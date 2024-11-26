@@ -1,5 +1,6 @@
 import datetime
 import json
+import random
 import secrets
 
 from dotenv import load_dotenv
@@ -193,6 +194,39 @@ class MyStore(Resource):
         )
 
 
+@api.route("/store/<int:userID>")
+class Store(Resource):
+    def get(self, userID):
+
+        user = User.query.filter_by(id=userID).first()
+
+        if not user:
+            return (
+                jsonify(
+                    {
+                        "status": "fail",
+                        "message": f"User with ID {userID} not found.",
+                        "data": None,
+                    }
+                ),
+                404,
+            )
+
+        return (
+            jsonify(
+                {
+                    "status": "success",
+                    "message": f"Store for userID {userID}",
+                    "data": {
+                        "username": user.username,
+                        "choiceType": user.choiceType,
+                    },
+                }
+            ),
+            200,
+        )
+
+
 # @api.route("/store/<int:userID>/select")
 # class MyStoreSelect(Resource):
 # def get(self, userID):
@@ -215,8 +249,8 @@ class MyStoreWrite(Resource):
                     "message": "해당 사용자 정보를 찾을 수 없습니다.",
                 }, 404
 
-            # 작성자 ID를 User 테이블에서 가져옴
-            writer_id = user.studentID
+            # 작성자 ID를 현재 로그인한 사용자 ID로
+            writer_id = get_jwt_identity()
 
         except Exception as e:
             return {
@@ -231,23 +265,85 @@ class MyStoreWrite(Resource):
                 "message": "내용을 입력해주세요.",
             }, 400
 
-        # 성공 응답
+            # 새로운 쪽지 작성
+        try:
+            new_message = Message(
+                content=content, writer_id=writer_id, choiceType=type, user_id=userID
+            )
+            db.session.add(new_message)
+            db.session.commit()
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": f"쪽지 작성 중 오류가 발생했습니다: {str(e)}",
+            }, 500
+
         return {
-            "message": f"Write {type} for userID {writer_id}",
-            "writer_id": writer_id,
-        }, 200
+            "status": "success",
+            "message": f"{type} 쪽지가 성공적으로 작성되었습니다.",
+            "data": {
+                "memo_id": new_message.memo_id,
+                "writer_id": writer_id,
+                "content": new_message.content,
+                "choiceType": new_message.choiceType,
+            },
+        }, 201
 
 
 @api.route("/myStore/<int:userID>/read/<string:postID>")
 class MyStoreRead(Resource):
     def get(self, userID, postID):
-        return {"message": f"Read post {postID} for userID {userID}"}
+
+        message = Message.query.filter_by(id=postID, user_id=userID).first()
+
+        # 쪽지가 존재하지 않는 경우
+        if not message:
+            return (
+                jsonify({"status": "error", "message": "쪽지를 찾을 수 없습니다."}),
+                404,
+            )
+
+        return (
+            jsonify(
+                {
+                    "status": "success",
+                    "data": {
+                        "postID": message.id,
+                        "writer": message.writer,
+                        "content": message.content,
+                        "choiceType": message.choice_type,
+                    },
+                }
+            ),
+            200,
+        )
 
 
 @api.route("/allStore")
 class AllStore(Resource):
     def get(self):
-        return {"message": "All stores"}
+
+        users = User.query.all()
+
+        store_list = [{"userid": user.id, "username": user.username} for user in users]
+
+        random_user = random.choice(users)
+
+        return (
+            jsonify(
+                {
+                    "status": "success",
+                    "data": {
+                        "store_list": store_list,
+                        "random_user": {
+                            "userid": random_user.id,
+                            "username": random_user.username,
+                        },
+                    },
+                }
+            ),
+            200,
+        )
 
 
 @api.route("/hello")  # 데코레이터 이용, '/hello' 경로에 클래스 등록

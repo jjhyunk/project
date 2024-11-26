@@ -28,10 +28,7 @@ class User(db.Model):
         self.password_hash = generate_password_hash(password)
 
     def set_nickname(self):
-        """
-        username에서 성을 제외한 나머지 이름 + '붕'을 붙여 nickname에 저장합니다.
-        예: '홍길동' -> '길동붕'
-        """
+
         # 이름 분리
         name_parts = self.username.split()
         if len(name_parts) > 1:
@@ -63,5 +60,5 @@ class Message(db.Model):
 # Quipu 회원 데이터베이스
 class Quipu(db.Model):
     __tablename__ = "quipu_students"
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     studentID = db.Column(db.String(20), unique=True, nullable=False)
