@@ -128,6 +128,18 @@ class MyStoreSelect(Resource):
 @api.route("/myStore/<int:userID>/write/<string:type>")
 class MyStoreWrite(Resource):
     def post(self, userID, type):
+
+        data = request.get_json()
+        writer = data.get("writer")
+        content = data.get("content")
+
+        if not writer or not content:
+            return {
+                "status": "error",
+                "message": "작성자와 내용 모두 입력해주세요.",
+            }, 400
+        # 그런데 로그인 되어있으면 작성자 이름(nickname)이 자동으로 넘어오도록 한다면..
+
         return {"message": f"Write {type} for userID {userID}"}
 
 
