@@ -27,6 +27,20 @@ class User(db.Model):
     def password(self, password):
         self.password_hash = generate_password_hash(password)
 
+    def set_nickname(self):
+        """
+        username에서 성을 제외한 나머지 이름 + '붕'을 붙여 nickname에 저장합니다.
+        예: '홍길동' -> '길동붕'
+        """
+        # 이름 분리
+        name_parts = self.username.split()
+        if len(name_parts) > 1:
+            # 성을 제외한 나머지 이름
+            self.nickname = "".join(name_parts[1:]) + "붕"
+        else:
+            # 이름 전체 + '붕'
+            self.nickname = self.username + "붕"
+
 
 class Message(db.Model):
     __tablename__ = "messages"
@@ -44,3 +58,10 @@ class Message(db.Model):
 
     def __repr__(self):
         return f"<Message {self.memo_id}>"
+
+
+# Quipu 회원 데이터베이스
+class Quipu(db.Model):
+    __tablename__ = "quipu_students"
+    id = db.Column(db.Integer, primary_key=True)
+    studentID = db.Column(db.String(20), unique=True, nullable=False)

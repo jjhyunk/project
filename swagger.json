@@ -29,6 +29,17 @@
             }
         },
         "/login": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "operationId": "get_login",
+                "tags": [
+                    "default"
+                ]
+            },
             "post": {
                 "responses": {
                     "200": {
@@ -138,6 +149,17 @@
             }
         },
         "/register": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "operationId": "get_register",
+                "tags": [
+                    "default"
+                ]
+            },
             "post": {
                 "responses": {
                     "200": {
@@ -145,6 +167,19 @@
                     }
                 },
                 "operationId": "post_register",
+                "tags": [
+                    "default"
+                ]
+            }
+        },
+        "/register/quipuCheck": {
+            "post": {
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "operationId": "post_check",
                 "tags": [
                     "default"
                 ]
