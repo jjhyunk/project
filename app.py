@@ -84,7 +84,7 @@ class Login(Resource):
         """token = jwt.encode(
             {"user_id": existing_user.id, "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
             app.config["SECRET_KEY"],
-            algorithm="HS256"
+            algorithm="HS256" test!!
         )"""
 
         return {
