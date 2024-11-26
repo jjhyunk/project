@@ -1,9 +1,11 @@
+import datetime
 import json
 
 from dotenv import load_dotenv
 from flask import Flask, request
 from flask_migrate import Migrate
 from flask_restx import Api, Resource
+from werkzeug.security import check_password_hash
 
 from db_setup import db
 from models import Message, User
@@ -14,6 +16,7 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:1212@localhost/mywork"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SERVER_NAME"] = "localhost:8080"
+# app.config["SECRET_KEY"] = "your-secret-key"  # JWT 토큰 생성에 필요한 비밀 키
 
 
 migrate = Migrate(app, db)
@@ -70,10 +73,26 @@ class Login(Resource):
             return {"error": "모든 필수 값을 입력해주세요."}, 400
 
         existing_user = User.query.filter_by(studentID=studentID).first()
+
         if not existing_user:
             return {"error": "가입되지 않은 회원입니다."}, 400
 
-        return {"message": "Login endpoint"}
+        if not check_password_hash(existing_user.password, password):
+            return {"error": "비밀번호가 일치하지 않습니다."}, 400
+
+        # JWT 토큰 생성
+        """token = jwt.encode(
+            {"user_id": existing_user.id, "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
+            app.config["SECRET_KEY"],
+            algorithm="HS256"
+        )"""
+
+        return {
+            "status": "success",
+            "message": "로그인 성공",
+            "name": existing_user.username,
+            "choiceType": existing_user.choiceType,
+        }, 200
 
 
 @api.route("/myStore/<int:userID>")
