@@ -100,54 +100,6 @@
                 ]
             }
         },
-        "/myStore/{userID}/select": {
-            "parameters": [
-                {
-                    "name": "userID",
-                    "in": "path",
-                    "required": true,
-                    "type": "integer"
-                }
-            ],
-            "get": {
-                "responses": {
-                    "200": {
-                        "description": "Success"
-                    }
-                },
-                "operationId": "get_my_store_select",
-                "tags": [
-                    "default"
-                ]
-            }
-        },
-        "/myStore/{userID}/write/{type}": {
-            "parameters": [
-                {
-                    "name": "userID",
-                    "in": "path",
-                    "required": true,
-                    "type": "integer"
-                },
-                {
-                    "name": "type",
-                    "in": "path",
-                    "required": true,
-                    "type": "string"
-                }
-            ],
-            "post": {
-                "responses": {
-                    "200": {
-                        "description": "Success"
-                    }
-                },
-                "operationId": "post_my_store_write",
-                "tags": [
-                    "default"
-                ]
-            }
-        },
         "/register": {
             "get": {
                 "responses": {
@@ -180,6 +132,33 @@
                     }
                 },
                 "operationId": "post_check",
+                "tags": [
+                    "default"
+                ]
+            }
+        },
+        "/store/{userID}/write/{type}": {
+            "parameters": [
+                {
+                    "name": "userID",
+                    "in": "path",
+                    "required": true,
+                    "type": "integer"
+                },
+                {
+                    "name": "type",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ],
+            "post": {
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "operationId": "post_my_store_write",
                 "tags": [
                     "default"
                 ]
