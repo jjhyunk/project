@@ -50,13 +50,15 @@ def create_message_table(user_id):
     """유저별 메시지 테이블 동적 생성 함수."""
     table_name = f"messages_user_{user_id}"
 
+    # 테이블이 이미 존재하면 그것을 return
     if db.engine.dialect.has_table(db.engine, table_name):
         return Table(table_name, db.metadata, autoload_with=db.engine)
 
+    # 없으면 새로 생성
     table = Table(
         table_name,
         db.metadata,
-        Column("id", Integer, primary_key=True, autoincrement=True),
+        Column("memo_id", Integer, primary_key=True, autoincrement=True),
         Column("content", Text, nullable=False),
         Column("writer_id", Integer, ForeignKey("users.id"), nullable=False),
         Column("choiceType", String(50), nullable=False),
@@ -68,10 +70,18 @@ def create_message_table(user_id):
 
 
 def create_message(user_id, content, writer_id, choice_type):
-    table = create_message_table(user_id)  # 유저별 테이블 생성
+    # 테이블이 이미 생성되어 있으니 해당 테이블에 메시지 삽입
+    table_name = f"user_{user_id}_messages"
+
+    # 테이블 객체를 가져온다
+    try:
+        table = Table(table_name, db.metadata, autoload_with=db.engine)
+    except Exception as e:
+        return jsonify({"error": f"테이블을 로드하는데 실패했습니다: {str(e)}"}), 500
 
     # 동적으로 생성된 테이블에 메시지 삽입
     try:
+        # 테이블에 데이터 삽입
         db.session.execute(
             table.insert().values(
                 content=content,
@@ -82,13 +92,20 @@ def create_message(user_id, content, writer_id, choice_type):
             )
         )
         db.session.commit()
-        return {
-            "status": "success",
-            "message": "메시지가 성공적으로 작성되었습니다.",
-        }, 201
+
+        return (
+            jsonify(
+                {
+                    "status": "success",
+                    "message": "메시지가 성공적으로 작성되었습니다.",
+                }
+            ),
+            201,
+        )
     except Exception as e:
+        # 오류 발생 시 롤백
         db.session.rollback()
-        return {"error": f"메시지 작성 중 오류가 발생했습니다: {str(e)}"}, 500
+        return jsonify({"error": f"메시지 작성 중 오류가 발생했습니다: {str(e)}"}), 500
 
 
 @api.route("/register")
@@ -144,7 +161,7 @@ class Register(Resource):
 @api.route("/register/quipuCheck")
 class Check(Resource):
     def post(self):
-        # 프론트엔드에서 전달된 JSON 데이터 읽기
+
         data = request.get_json()
         studentID = data.get("studentID")
 
@@ -307,29 +324,16 @@ class StoreWrite(Resource):
             if not user:
                 return jsonify({"error": "유저를 찾을 수 없습니다."}), 404
 
-            message_table_name = user.get_message_table_name()
+            # 유저별 메세지 테이블 유무 확인
+            create_message_table(userID)
 
-            # 테이블이 존재하는지 확인하고 없으면 생성
-            if not db.engine.dialect.has_table(db.engine, message_table_name):
-                create_message_table(user)
-
-            message_table = Table(
-                message_table_name, db.metadata, autoload_with=db.engine
-            )
-
-            result = db.session.execute(
-                message_table.insert().values(
-                    content=content,
-                    writer_id=current_user_id,
-                    choiceType=type,
-                    created_at=datetime.now(),
-                )
-            )
-            db.session.commit()
+            # 동적으로 생성된 테이블에 메시지 추가
+            result = create_message(userID, content, current_user_id, type)
+            if result[1] != 201:
+                return result  # 오류 메시지 반환
 
             # 새로운 메시지 ID 가져오기
-            new_message_id = result.inserted_primary_key[0]
-
+            new_message_id = result[0].get("status")
         except Exception as e:
             db.session.rollback()
             return (
