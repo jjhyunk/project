@@ -13,6 +13,16 @@ from flask_jwt_extended import (
 )
 from flask_migrate import Migrate
 from flask_restx import Api, Resource
+from sqlalchemy import (
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    MetaData,
+    String,
+    Table,
+    Text,
+)
 from werkzeug.security import check_password_hash
 
 from db_setup import db
@@ -34,6 +44,51 @@ migrate = Migrate(app, db)
 
 
 api = Api(app, doc="/swagger")  # Flask 객체에 Api 객체 등록
+
+
+def create_message_table(user_id):
+    """유저별 메시지 테이블 동적 생성 함수."""
+    table_name = f"messages_user_{user_id}"
+
+    if db.engine.dialect.has_table(db.engine, table_name):
+        return Table(table_name, db.metadata, autoload_with=db.engine)
+
+    table = Table(
+        table_name,
+        db.metadata,
+        Column("id", Integer, primary_key=True, autoincrement=True),
+        Column("content", Text, nullable=False),
+        Column("writer_id", Integer, ForeignKey("users.id"), nullable=False),
+        Column("choiceType", String(50), nullable=False),
+        Column("created_at", DateTime, default=datetime.now),
+        Column("updated_at", DateTime, default=datetime.now, onupdate=datetime.now),
+    )
+    table.create(db.engine)
+    return table
+
+
+def create_message(user_id, content, writer_id, choice_type):
+    table = create_message_table(user_id)  # 유저별 테이블 생성
+
+    # 동적으로 생성된 테이블에 메시지 삽입
+    try:
+        db.session.execute(
+            table.insert().values(
+                content=content,
+                writer_id=writer_id,
+                choiceType=choice_type,
+                created_at=datetime.now(),
+                updated_at=datetime.now(),
+            )
+        )
+        db.session.commit()
+        return {
+            "status": "success",
+            "message": "메시지가 성공적으로 작성되었습니다.",
+        }, 201
+    except Exception as e:
+        db.session.rollback()
+        return {"error": f"메시지 작성 중 오류가 발생했습니다: {str(e)}"}, 500
 
 
 @api.route("/register")
@@ -60,8 +115,7 @@ class Register(Resource):
                 400,
             )
 
-        existing_user = User.query.filter_by(studentID=studentID).first()
-        if existing_user:
+        if User.query.filter_by(studentID=studentID).first():
             return jsonify({"error": "이미 등록된 학번입니다."}), 400
 
         new_user = User(
@@ -74,6 +128,8 @@ class Register(Resource):
 
         try:
             db.session.add(new_user)
+            db.session.commit()
+            create_message_table(new_user.id)
             db.session.commit()
         except Exception as e:
             db.session.rollback()
@@ -112,7 +168,7 @@ class Login(Resource):
     def post(self):
         data = request.get_json()
 
-        studentID = data.get("studetnID")
+        studentID = data.get("studentID")
         password = data.get("password")
 
         if not studentID or not password:
@@ -126,7 +182,7 @@ class Login(Resource):
         if not check_password_hash(existing_user.password, password):
             return jsonify({"error": "비밀번호가 일치하지 않습니다."}), 400
 
-        access_token = create_access_token(identity=User.id)
+        access_token = create_access_token(identity=existing_user.id)
 
         return (
             jsonify(
@@ -234,58 +290,61 @@ class Store(Resource):
 
 
 @api.route("/store/<int:userID>/write/<string:type>")
-class MyStoreWrite(Resource):
+class StoreWrite(Resource):
     def post(self, userID, type):
+
+        current_user_id = get_jwt_identity()
 
         data = request.get_json()
         content = data.get("content")
 
-        # 데이터베이스에서 userID에 해당하는 사용자 가져오기
-        try:
-            user = User.query.filter_by(id=userID).first()
-            if not user:
-                return {
-                    "status": "error",
-                    "message": "해당 사용자 정보를 찾을 수 없습니다.",
-                }, 404
-
-            # 작성자 ID를 현재 로그인한 사용자 ID로
-            writer_id = get_jwt_identity()
-
-        except Exception as e:
-            return {
-                "status": "error",
-                "message": f"데이터베이스 조회 중 오류가 발생했습니다: {str(e)}",
-            }, 500
-
-        # 내용 확인
         if not content:
-            return {
-                "status": "error",
-                "message": "내용을 입력해주세요.",
-            }, 400
+            return jsonify({"error": "내용을 입력하세요."}), 400
 
-            # 새로운 쪽지 작성
+        # 유저별 메시지 테이블에 데이터 삽입
         try:
-            new_message = Message(
-                content=content, writer_id=writer_id, choiceType=type, user_id=userID
+            user = User.query.get(userID)
+            if not user:
+                return jsonify({"error": "유저를 찾을 수 없습니다."}), 404
+
+            message_table_name = user.get_message_table_name()
+
+            # 테이블이 존재하는지 확인하고 없으면 생성
+            if not db.engine.dialect.has_table(db.engine, message_table_name):
+                create_message_table(user)
+
+            message_table = Table(
+                message_table_name, db.metadata, autoload_with=db.engine
             )
-            db.session.add(new_message)
+
+            result = db.session.execute(
+                message_table.insert().values(
+                    content=content,
+                    writer_id=current_user_id,
+                    choiceType=type,
+                    created_at=datetime.now(),
+                )
+            )
             db.session.commit()
+
+            # 새로운 메시지 ID 가져오기
+            new_message_id = result.inserted_primary_key[0]
+
         except Exception as e:
-            return {
-                "status": "error",
-                "message": f"쪽지 작성 중 오류가 발생했습니다: {str(e)}",
-            }, 500
+            db.session.rollback()
+            return (
+                jsonify({"error": f"메시지 작성 중 오류가 발생했습니다: {str(e)}"}),
+                500,
+            )
 
         return {
             "status": "success",
             "message": f"{type} 쪽지가 성공적으로 작성되었습니다.",
             "data": {
-                "memo_id": new_message.memo_id,
-                "writer_id": writer_id,
-                "content": new_message.content,
-                "choiceType": new_message.choiceType,
+                "memo_id": new_message_id,
+                "writer_id": current_user_id,
+                "content": content,
+                "choiceType": type,
             },
         }, 201
 

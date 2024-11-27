@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Table, Text
 from werkzeug.security import generate_password_hash
 
 from db_setup import db

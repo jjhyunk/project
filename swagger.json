@@ -29,17 +29,6 @@
             }
         },
         "/login": {
-            "post": {
-                "responses": {
-                    "200": {
-                        "description": "Success"
-                    }
-                },
-                "operationId": "post_login",
-                "tags": [
-                    "default"
-                ]
-            },
             "get": {
                 "responses": {
                     "200": {
@@ -47,6 +36,17 @@
                     }
                 },
                 "operationId": "get_login",
+                "tags": [
+                    "default"
+                ]
+            },
+            "post": {
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "operationId": "post_login",
                 "tags": [
                     "default"
                 ]
@@ -101,17 +101,6 @@
             }
         },
         "/register": {
-            "post": {
-                "responses": {
-                    "200": {
-                        "description": "Success"
-                    }
-                },
-                "operationId": "post_register",
-                "tags": [
-                    "default"
-                ]
-            },
             "get": {
                 "responses": {
                     "200": {
@@ -119,6 +108,17 @@
                     }
                 },
                 "operationId": "get_register",
+                "tags": [
+                    "default"
+                ]
+            },
+            "post": {
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "operationId": "post_register",
                 "tags": [
                     "default"
                 ]
@@ -179,7 +179,7 @@
                         "description": "Success"
                     }
                 },
-                "operationId": "post_my_store_write",
+                "operationId": "post_store_write",
                 "tags": [
                     "default"
                 ]
