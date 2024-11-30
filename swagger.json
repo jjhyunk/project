@@ -1,0 +1,484 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "API 문서",
+    "version": "1.0",
+    "description": "Flask 애플리케이션의 API 문서입니다. 사용자 관리, 메시지, 스토어 관련 작업에 대한 엔드포인트를 포함합니다."
+  },
+  "host": "localhost:5000",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/allStore": {
+      "get": {
+        "summary": "모든 스토어 조회",
+        "description": "모든 사용자 목록과 무작위로 선택된 사용자의 정보를 가져옵니다.",
+        "tags": [
+          "스토어"
+        ],
+        "security": [
+          {
+            "jwt_token": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "모든 사용자와 무작위 사용자 정보.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "example": "success"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "store_list": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "userid": {
+                            "type": "integer",
+                            "example": 1
+                          },
+                          "username": {
+                            "type": "string",
+                            "example": "Alice"
+                          }
+                        }
+                      }
+                    },
+                    "random_users": {
+                      "type": "array",
+                      "items": {
+                        "properties": {
+                          "userid": {
+                            "type": "integer"
+                          },
+                          "username": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "사용자 정보가 없습니다",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/register": {
+      "post": {
+        "summary": "사용자 등록",
+        "description": "이름, 학번, 비밀번호 등의 정보를 입력하여 사용자를 등록합니다.",
+        "tags": [
+          "사용자"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "example": "홍길동"
+                },
+                "studentID": {
+                  "type": "string",
+                  "example": "20241234"
+                },
+                "password": {
+                  "type": "string",
+                  "example": "password123"
+                },
+                "choiceType": {
+                  "type": "string",
+                  "example": "A"
+                },
+                "topic": {
+                  "type": "string",
+                  "example": "Sports"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "사용자 등록 성공."
+          },
+          "400": {
+            "description": "잘못된 입력 또는 이미 존재하는 사용자."
+          },
+          "500": {
+            "description": "회원 가입 오류"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "사용자"
+        ],
+        "description": "지원하지 않는 요청 방식",
+        "responses": {
+          "405": {
+            "description": "메서드 에러"
+          }
+        }
+      }
+    },
+    "/register/quipuCheck": {
+      "post": {
+        "summary": "quipu에서 학번 확인",
+        "description": "quipu_students 테이블에서 학번이 존재하는지 확인합니다.",
+        "tags": [
+          "사용자"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "studentID": {
+                  "type": "string",
+                  "example": "20241234"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "학번이 존재합니다."
+          },
+          "404": {
+            "description": "학번이 존재하지 않습니다."
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "summary": "사용자 로그인",
+        "description": "학번과 비밀번호를 입력하여 사용자가 로그인할 수 있습니다.",
+        "tags": [
+          "사용자"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "studentID": {
+                  "type": "string",
+                  "example": "20241234"
+                },
+                "password": {
+                  "type": "string",
+                  "example": "password123"
+                }
+              },
+              "required": [
+                "studentID",
+                "password"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "로그인 성공.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "example": "success"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "로그인 성공"
+                },
+                "name": {
+                  "type": "string",
+                  "example": "홍길동"
+                },
+                "choiceType": {
+                  "type": "string",
+                  "example": "A"
+                },
+                "token": {
+                  "type": "string",
+                  "example": "jwt_token_example"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 학번 또는 비밀번호."
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "사용자"
+        ],
+        "responses": {
+          "405": {
+            "description": "메서드 에러"
+          }
+        }
+      }
+    },
+    "/myStore/{userID}": {
+      "get": {
+        "summary": "사용자 스토어 조회",
+        "description": "특정 사용자의 스토어 정보를 조회합니다.",
+        "tags": [
+          "스토어"
+        ],
+        "parameters": [
+          {
+            "name": "userID",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "사용자의 ID.",
+            "example": 123
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "사용자 스토어 정보.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "example": "success"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "MyStore for userID 1"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "username": {
+                      "type": "string",
+                      "example": "홍길동"
+                    },
+                    "choiceType": {
+                      "type": "string",
+                      "example": "A"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "사용자를 찾을 수 없습니다."
+          },
+          "403": {
+            "description": "로그인 필요합니다"
+          }
+        }
+      }
+    },
+    "/store/{userID}/write/{type}": {
+      "post": {
+        "summary": "스토어에 메시지 작성",
+        "description": "사용자가 자신의 스토어에 메시지를 작성합니다.",
+        "tags": [
+          "스토어"
+        ],
+        "parameters": [
+          {
+            "name": "userID",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "사용자의 ID.",
+            "example": 123
+          },
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "메시지 유형.",
+            "example": "public"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "content": {
+                  "type": "string",
+                  "example": "안녕하세요. 메시지입니다."
+                }
+              },
+              "required": [
+                "content"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "메시지 작성 성공.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "example": "success"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "쪽지가 성공적으로 작성되었습니다."
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "memo_id": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "writer_id": {
+                      "type": "integer",
+                      "example": 123
+                    },
+                    "content": {
+                      "type": "string",
+                      "example": "This is a memo content."
+                    },
+                    "choiceType": {
+                      "type": "string",
+                      "example": "student"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "내용을 입력하세요"
+          },
+          "403": {
+            "description": "자기 붕어빵에는 쪽지 작성 불가합니다"
+          },
+          "404": {
+            "description": "사용자를 찾을 수 없습니다."
+          },
+          "500": {
+            "description": "서버 에러"
+          }
+        }
+      }
+    },
+    "/store/{userID}": {
+      "get": {
+        "summary": "다른 사람 가게 조회",
+        "description": "다른 사람의 붕어빵 가게",
+        "parameters": [
+          {
+            "name": "userID",
+            "in": "path",
+            "reuired": true,
+            "type": "integer",
+            "description": "userID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "example": "success"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "404": {
+                  "description": "User not found.",
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "example": "fail"
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "User with ID {userID} not found."
+                      },
+                      "data": {
+                        "type": "null",
+                        "example": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "404": {
+          "description": "사용자 없음"
+        }
+      }
+    },
+    "tags": [
+      {
+        "name": "사용자",
+        "description": "사용자 관리 관련 엔드포인트"
+      },
+      {
+        "name": "스토어",
+        "description": "스토어 관련 엔드포인트"
+      }
+    ]
+  }
+}

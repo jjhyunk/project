@@ -1,0 +1,34 @@
+
+# Python bytecode files
+*.pyc
+*.pyo
+__pycache__/
+
+# Virtual environment directories
+venv/
+.env
+
+# Environment variable files
+.env.local
+
+# IDE config files (for VS Code or PyCharm)
+.vscode/
+.idea/
+
+# Migrations folder for SQLAlchemy (if you don't want it to be tracked by git)
+migrations/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Distribution / packaging files
+build/
+dist/
+*.egg-info/
+
+# macOS system files
+.DS_Store
+
+# Additional entries from the other branch
+.mypy_cache/
+*.log
